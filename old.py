@@ -118,7 +118,7 @@ def points(p1, p2):
         screen.blit(pl1,(10,520))
         screen.blit(pl2,(10,555))
 
-def reset(): #inicia novamente
+def reset():
         global STATE, TURN, CHOICE, boardMark, espaco
         STATE = 'JOGANDO'
         TURN = 'JOGADOR1'
