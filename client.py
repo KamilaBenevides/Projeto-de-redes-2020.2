@@ -44,11 +44,11 @@ def draw_ask(pos):
         global TURN
         x,y = pos
         if TURN == 'JOGADOR2':
-                imgO = pygame.image.load('O.png').convert_alpha()
+                imgO = pygame.image.load('resources/O.png').convert_alpha()
                 imgOR = pygame.transform.scale(imgO, (80,80))
                 screen.blit(imgOR, (x-50, y-50))
         else:
-                imgX = pygame.image.load('X.png').convert_alpha()
+                imgX = pygame.image.load('resources/X.png').convert_alpha()
                 imgXR = pygame.transform.scale(imgX, (80,80))
                 screen.blit(imgXR, (x-50, y-50))
 
