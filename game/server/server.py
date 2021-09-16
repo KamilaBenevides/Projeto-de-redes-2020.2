@@ -1,7 +1,8 @@
-from game_queue import Queue
-from game import Game, Player
+from .game_queue import Queue
+from .game import Game
 import socket
 import sys
+from _thread import *
 
 class Server:
     def __init__(self, ip, port):
@@ -15,17 +16,18 @@ class Server:
         Tenta criar o servidor. Aborta o programa caso ocorra algum erro
         """
         try:
-            i = 0
+            #i = 0
             self.socket.bind((self.ip, self.port))
+            self.socket.listen()
+            print("Servidor iniciado em {}:{}".format(self.ip, self.port))
    
-            while(i < 2):
-                self.socket.listen()
-                print("Servidor iniciado em {}:{}".format(self.ip, self.port))
-                
+            while(True):
+                print(server.queue)
                 conn, address = self.socket.accept()
                 print("Nova conexão de : {}".format(address))
-                self.start_or_queue_game(conn, address)
-                i += 1
+                start_new_thread(self.start_or_queue_game, (conn, address))
+                
+                #i += 1
                 
                 
         
@@ -53,5 +55,4 @@ class Server:
 if __name__ == "__main__":
     server = Server('localhost', 7455)
     server.serve()
-    print(server.queue)
     server.close_server()

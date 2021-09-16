@@ -1,4 +1,5 @@
 import socket
+from ..utils.message import Message
 
 class Game:
     P1 = 0
@@ -57,49 +58,65 @@ class Game:
     def start(self):
         if (self.player1 == None) or (self.player2 == None):
             raise Exception("Os jogadores ainda não foram definidos.")
-        
-        msg = "START\n"
-        self.player1.conn.send(msg.encode())
-        self.player2.conn.send(msg.encode())
+       
+        msg = Message()
+        msg.add_command(msg.__START__)
+        msg.add_command(msg.__OKAY__)
+        self.player1.conn.send(msg.create_message().encode())
+        self.player2.conn.send(msg.create_message().encode())
 
         player_turn, another_player = (self.player1, self.player2) if self.turn == self.P1 else (self.player2, self.player1)
-        player_turn.setblocking(True)
-        another_player.setblocking(True)
+        #player_turn.conn.setblocking(True)
+        #another_player.conn.setblocking(True)
         win = False
         draw = False
         while (not win) and (not draw):
+            msg1 = Message()
+            msg2 = Message()
+            msg1.add_command(msg1.__YOURTURN__)
+            msg2.add_command(msg2.__OTHERTURN__)
+            msg1.add_command(msg1.__OKAY__)
+            msg2.add_command(msg2.__OKAY__)
             try:
                 # ---------- Envia mensagem de preparação de turno -------------
-                msg1 = "YOUTURN\n"
-                msg2 = "OTHERTURN\n"
-                
-                player_turn.conn.send(msg1.encode())
-                another_player.conn.send(msg2.encode())
+                player_turn.conn.send(msg1.create_message().encode())
+                another_player.conn.send(msg2.create_message().encode())
 
                 # ---------- Recebe movimentos do jogador do turno -------------
                 move = player_turn.conn.recv(4096)
-                command, idx_i, idx_j = move.split(" ")#recebe mensagem: MOVE num1 num2
-                self.set_mark(int(idx_i), int(idx_j))
+                msg = Message(move.decode())
+                if not msg.MOVE:
+                    raise Exception()
+                
+                self.set_mark(msg.idx_i, msg.idx_j)
 
+                msg1 = Message()
+                msg2 = Message()
+                msg1.add_command(msg1.__YOURTURN__)
+                msg2.add_command(msg2.__OTHERTURN__)
                 # ------ Envia mensagens pros jogadores sobre ações tomadas nesse turno 
-                msg1 = ""
-                msg2 = ""
                 if(self.check_winner(player_turn)):
                     #jogador venceu a partida
-                    msg1 = "WINNER\n"
-                    msg2 = "LOSER\n"
+                    msg1.add_command(msg1.__WINNER__)
+                    msg2.add_command(msg2.__LOSER__)
                     win = True
                 elif self.pos_left == 0:
                     #deu empate
-                    msg1 = "DRAW\n"
-                    msg2 = "DRAW\n"
+                    msg1.add_command(msg1.__DRAW__)
+                    msg2.add_command(msg2.__DRAW__)
                     draw = True
-                
-                msg1 += "OKAY\n"
-                msg2 += "MOVE: {} {}\n".format(idx_i, idx_j)
 
-                player_turn.conn.send(msg1.encode())
-                another_player.conn.send(msg2.encode())#envia ao outro jogador qual foi posição jogada
+                msg1.add_command(msg1.__OKAY__)
+                msg2.add_command(msg2.__OKAY__)
+
+                msg1.add_command(msg1.__MOVE__)
+                msg2.add_command(msg2.__MOVE__)
+
+                msg1.set_index(msg.idx_i, msg.idx_j)
+                msg2.set_index(msg.idx_i, msg.idx_j)
+
+                player_turn.conn.send(msg1.create_message().encode())
+                another_player.conn.send(msg2.create_message().encode())#envia ao outro jogador qual foi posição jogada
                 
                 #---------- Muda o turno
                 
@@ -113,20 +130,21 @@ class Game:
                 #ocorreu algum erro
                 #o jogador precisa refazer seu turno
                 #envia comandos para os jogadores
-                msg1 = "REDO\n"
-                msg2 = "REDO\n"
+                msg = Message()
+                msg.add_command(msg.__REDO__)
                 
-                player_turn.conn.send(msg1.encode())
-                another_player.conn.send(msg2.encode())
+                player_turn.conn.send(msg.create_message().encode())
+                another_player.conn.send(msg.create_message().encode())
 
 
 
     def wait(self):
         if self.player1 == None:
             raise Exception("Player 1 não foi definidido.")
-        
-        msg = "INQUEUE\n"
-        self.player1.conn.send(msg.encode())
+        msg = Message()
+        msg.add_command(msg.__INQUEUE__)
+        text = msg.create_message()
+        self.player1.conn.send(text.encode())
         
 class Player:
     def __init__(self, conn : socket.socket, address: tuple, mark = 0):
@@ -134,13 +152,17 @@ class Player:
         self.address = address
         self.mark = mark
 
-class Message:
-    types = ['INQUEUE','START', 'YOURTURN', 'OTHERTURN',
-     'WINNER', 'LOSER', 'OKAY', 'DRAW', 'REDO', 'MOVE']
-    def __init__(self, type, **kwargs):
-        if type not in self.types:
-            raise Exception("O tipo de mensagem informado não é suportado.")
-        self.type = type
-        if self.type == "MOVE":
-            self.idx_i = kwargs["idx_i"]
-            self.idx_j = kwargs["idx_j"]
+
+
+if __name__ == "__main__":
+    #testes
+    
+    msg = "MOVE 1 2\nSTART\n"
+    message = Message()
+    print(message.MOVE, message.idx_i, message.idx_j)
+    print(message.START)
+    print(message.create_message())
+
+    game = Game()
+    game.wait()
+    
