@@ -27,6 +27,8 @@ python -m game.server.server port=4648
 
 Nesse exemplo, o servidor vai iniciar no ip ```'localhost'``` e porta ```4648```.
 
+Não é possível alterar o ip de escuta do servidor.
+
 ### Rodar o cliente
 
 No diretório ```src```, usar o comando para iniciar o cliente:
