@@ -16,7 +16,7 @@ class Server:
         Tenta criar o servidor. Aborta o programa caso ocorra algum erro
         """
         try:
-            #i = 0
+            
             self.socket.bind((self.ip, self.port))
             self.socket.listen()
             print("Servidor iniciado em {}:{}".format(self.ip, self.port))
@@ -27,7 +27,7 @@ class Server:
                 print("Nova conexão de : {}".format(address))
                 start_new_thread(self.start_or_queue_game, (conn, address))
                 
-                #i += 1
+                
                 
                 
         
