@@ -11,43 +11,53 @@ class Queue:
 
     def __init__(self):
         self.queue = []
-        self.locked = False
+        self.locked = False#serve como um semaforo
     
     def lock(self):
-        if not self.locked:
+        #adiquire o bloqueio da fila
+        if not self.locked:#se não estiver bloqueada
             self.locked = True
         else:
             raise Exception('Operação inválida. Fila já bloqueada.')
     
     def unlock(self):
+        #desbloqueia a fila
         if self.locked:
             self.locked = False
         else:
             raise Exception('Operação inválida. Fila já desbloqueada')
     
     def add_game(self, game : Game): 
+        """
+        Essa função adiciona o jogo na fila.
+        Fica esperando até a fila ser desbloqueada
+        """
         add = False
         
-        while( not add):
-            try:
+        while( not add):#enquanto não tiver inserido
+            try:#tenta inserir na fila
                 self.lock()
                 self.queue.append(game)
                 self.unlock()
-                add = True
+                add = True#inseriu
             except:
                 pass
        
     
     def get_game(self) -> Game:
+        """
+        Essa função desinfileirar um jogo na fila.
+        Fica esperando até a fila ser desbloqueada
+        """
         if (len(self.queue) > 0):
             get = False
             game = None
-            while(not get):
+            while(not get):#enquanto não tiver obtido o jogo
                 try:
                     self.lock()
                     game =  self.queue.pop(0)
                     self.unlock()
-                    get = True
+                    get = True#obteu o jogo
                 except:
                     pass
             return game
