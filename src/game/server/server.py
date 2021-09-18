@@ -55,26 +55,29 @@ class Server:
         """
         self.socket.close()
     
-def get_port(argv = ""):
+def get_ip_port(argv = ""):
     """
-    Obtem o  a porta informada na linha de comando
+    Obtem o ip e a porta informada na linha de comando
     Se não for informado na linha de comando o padrão é
-    porta 7455
+    ip localhost na porta 7455
     """
-    
+    ip = "localhost"
     port = 7455
     if(len(argv)>1):#se mais de um comando for informado
         args = argv[1:]
         for arg in args:
             unpack = arg.split("=")#separa por =
             if(len(unpack) > 1):
-                if unpack[0] == "port":
+                if unpack[0] == "ip":#se for ip
+                    ip = unpack[1]
+                elif unpack[0] == "port":
                     port = int(unpack[1])
 
-    return port
+    return [ip, port]
+
 
 if __name__ == "__main__":
-    port = get_port(sys.argv)
-    server = Server('localhost', port)
+    ip, port = get_ip_port(sys.argv)
+    server = Server(ip, port)
     server.serve()
     server.close_server()
